@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 
 
 @dataclass
@@ -17,10 +18,11 @@ class RuleBasedChargeGridModel:
 
     def generate(self, user_text: str, context: str, facts: dict[str, str]) -> ModelResponse:
         lower = user_text.lower()
+        mentioned_site = facts.get("local_mencionado") or _extract_site(user_text)
 
-        if _is_user_registering_site(lower, facts):
+        if _is_user_registering_site(lower, mentioned_site):
             content = (
-                f"Entendido. Vou considerar {facts['local_mencionado']} como o local desta "
+                f"Entendido. Vou considerar {mentioned_site} como o local desta "
                 "sessão para as próximas respostas."
             )
         elif _is_user_registering_amount(lower, facts):
@@ -125,8 +127,18 @@ def _estimate_tokens(text: str) -> int:
     return max(1, round(len(text.split()) * 1.35))
 
 
-def _is_user_registering_site(lower: str, facts: dict[str, str]) -> bool:
-    site = facts.get("local_mencionado")
+def _extract_site(text: str) -> str | None:
+    site_match = re.search(
+        r"(?:condominio|condomínio|eletroposto|campus|unidade)\s+([A-Za-zÀ-ÿ0-9 ._-]{2,40})",
+        text,
+        re.IGNORECASE,
+    )
+    if not site_match:
+        return None
+    return site_match.group(1).strip(" .")
+
+
+def _is_user_registering_site(lower: str, site: str | None) -> bool:
     return bool(site) and any(term in lower for term in ["estou usando", "estou analisando", "meu local", "eletroposto"])
 
 

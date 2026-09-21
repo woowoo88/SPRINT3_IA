@@ -44,7 +44,7 @@ Use `%pip` no Colab, porque ele instala as dependências no mesmo kernel que exe
 %cd SPRINT3_IA
 
 %pip install -q -r requirements.txt
-%pip install -q -e .
+%pip install -q --no-deps -e .
 ```
 
 Depois, valide a instalação:
@@ -78,8 +78,8 @@ Se você já tinha clonado uma versão anterior no Colab, rode uma instalação 
 !rm -rf SPRINT3_IA
 !git clone https://github.com/woowoo88/SPRINT3_IA.git
 %cd SPRINT3_IA
-%pip install -q --upgrade --force-reinstall -r requirements.txt
-%pip install -q --upgrade --force-reinstall -e .
+%pip install -q -r requirements.txt
+%pip install -q --no-deps -e .
 ```
 
 Documentos principais da Sprint 03:
