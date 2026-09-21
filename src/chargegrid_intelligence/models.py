@@ -80,12 +80,18 @@ class ConservativeChargeGridModel(RuleBasedChargeGridModel):
 
     def generate(self, user_text: str, context: str, facts: dict[str, str]) -> ModelResponse:
         response = super().generate(user_text, context, facts)
-        content = response.content
-        if _needs_professional_warning(user_text):
-            content += (
-                " Para decisão real de instalação, capacidade elétrica ou manutenção, valide com "
-                "um profissional habilitado e documentação oficial."
+        if not _needs_professional_warning(user_text):
+            return ModelResponse(
+                content=response.content,
+                model_name=self.name,
+                estimated_tokens=response.estimated_tokens,
             )
+
+        content = (
+            response.content
+            + " Como envolve instalação, capacidade elétrica ou manutenção, valide a decisão "
+            "com um profissional habilitado e com a documentação oficial."
+        )
         return ModelResponse(content=content, model_name=self.name, estimated_tokens=_estimate_tokens(content))
 
 

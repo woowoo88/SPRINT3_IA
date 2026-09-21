@@ -26,7 +26,7 @@ O nucleo conversacional foi refatorado com **LangGraph**, separando o fluxo em n
 ```bash
 pip install -r requirements.txt
 pip install -e .
-python -m chargegrid_intelligence.cli --model conservative --session demo
+python -m chargegrid_intelligence.cli --model rule --session demo
 ```
 
 Para rodar os testes automatizados:
@@ -51,13 +51,17 @@ Depois, valide a instalação:
 
 ```python
 from chargegrid_intelligence import ChargeGridAgent
-from chargegrid_intelligence.models import ConservativeChargeGridModel
 
-agent = ChargeGridAgent(model=ConservativeChargeGridModel())
+agent = ChargeGridAgent()
 
-print(agent.ask("Estou usando o eletroposto Campus FIAP Paulista.", session_id="demo")["answer"])
-print(agent.ask("Existem 12 vagas de recarga nesse local.", session_id="demo")["answer"])
-print(agent.ask("Considerando o local que mencionei, quantas vagas existem?", session_id="demo")["answer"])
+for pergunta in [
+    "Estou usando o eletroposto Campus FIAP Paulista.",
+    "Existem 12 vagas de recarga nesse local.",
+    "Considerando o local que mencionei, quantas vagas existem?",
+]:
+    print("Usuário:", pergunta)
+    print("ChargeGrid:", agent.ask(pergunta, session_id="demo")["answer"])
+    print()
 ```
 
 Se o Colab ainda mostrar `ModuleNotFoundError`, rode esta célula antes do import:
@@ -65,6 +69,17 @@ Se o Colab ainda mostrar `ModuleNotFoundError`, rode esta célula antes do impor
 ```python
 import sys
 sys.path.insert(0, "/content/SPRINT3_IA/src")
+```
+
+Se você já tinha clonado uma versão anterior no Colab, rode uma instalação limpa:
+
+```python
+%cd /content
+!rm -rf SPRINT3_IA
+!git clone https://github.com/woowoo88/SPRINT3_IA.git
+%cd SPRINT3_IA
+%pip install -q --upgrade --force-reinstall -r requirements.txt
+%pip install -q --upgrade --force-reinstall -e .
 ```
 
 Documentos principais da Sprint 03:

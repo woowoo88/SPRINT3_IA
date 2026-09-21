@@ -1,6 +1,6 @@
 [project]
 name = "chargegrid-intelligence"
-version = "0.3.0"
+version = "0.3.1"
 description = "Agente academico para gerenciamento conversacional de recarga comercial."
 requires-python = ">=3.10"
 dependencies = [
