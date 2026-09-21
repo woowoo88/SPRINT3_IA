@@ -38,7 +38,7 @@ def test_model_variation_changes_response_style():
     default_agent = ChargeGridAgent()
     conservative_agent = ChargeGridAgent(model=ConservativeChargeGridModel())
 
-    question = "Como funciona o controle de demanda do ChargeGrid?"
+    question = "Como avaliar a capacidade elétrica para instalar o ChargeGrid?"
     default_result = default_agent.ask(question, "modelo-a")
     conservative_result = conservative_agent.ask(question, "modelo-b")
 

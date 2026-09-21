@@ -18,48 +18,58 @@ class RuleBasedChargeGridModel:
     def generate(self, user_text: str, context: str, facts: dict[str, str]) -> ModelResponse:
         lower = user_text.lower()
 
-        if "quantas" in lower and ("vagas" in lower or "conectores" in lower or "pontos" in lower):
+        if _is_user_registering_site(lower, facts):
+            content = (
+                f"Entendido. Vou considerar {facts['local_mencionado']} como o local desta "
+                "sessão para as próximas respostas."
+            )
+        elif _is_user_registering_amount(lower, facts):
+            content = (
+                f"Perfeito. Registrei que esse local possui {facts['quantidade_pontos']} "
+                "pontos/vagas de recarga."
+            )
+        elif "quantas" in lower and ("vagas" in lower or "conectores" in lower or "pontos" in lower):
             amount = facts.get("quantidade_pontos")
             if amount:
-                content = f"Voce informou anteriormente que existem {amount} pontos/vagas de recarga."
+                content = f"Você informou anteriormente que existem {amount} pontos/vagas de recarga."
             else:
-                content = "Ainda nao tenho uma quantidade de vagas registrada nesta sessao."
+                content = "Ainda não tenho uma quantidade de vagas registrada nesta sessão."
         elif "local" in lower or "condominio" in lower or "condomínio" in lower:
             site = facts.get("local_mencionado")
             if site:
-                content = f"O local mencionado na sessao foi {site}."
+                content = f"O local mencionado na sessão foi {site}."
             else:
-                content = "Ainda nao tenho um local especifico salvo na memoria da sessao."
+                content = "Ainda não tenho um local específico salvo na memória da sessão."
         elif "ocpp" in lower or "modbus" in lower:
             content = (
                 "Na arquitetura proposta, OCPP conversa com os eletropostos para eventos de "
-                "sessao, status e comandos operacionais. MODBUS fica no nivel de medidores e "
-                "controladores, apoiando leitura de grandezas eletricas e controle de demanda."
+                "sessão, status e comandos operacionais. MODBUS fica no nível de medidores e "
+                "controladores, apoiando leitura de grandezas elétricas e controle de demanda."
             )
         elif "cobranca" in lower or "cobrança" in lower or "tarifa" in lower or "pagamento" in lower:
             tariff = facts.get("tarifa_informada", "uma tarifa configurada pelo operador")
             content = (
-                f"A cobranca dinamica pode usar {tariff}, horario, energia consumida e perfil "
-                "do usuario. O agente registra inicio, fim, kWh estimado e regra aplicada, "
-                "sempre deixando claro que os valores do prototipo sao simulados."
+                f"A cobrança dinâmica pode usar {tariff}, horário, energia consumida e perfil "
+                "do usuário. O agente registra início, fim, kWh estimado e regra aplicada, "
+                "sempre deixando claro que os valores do protótipo são simulados."
             )
         elif "demanda" in lower or "potencia" in lower or "potência" in lower or "balanceamento" in lower:
             amount = facts.get("quantidade_pontos", "os pontos ativos")
             content = (
-                "O controle de demanda distribui a potencia disponivel entre "
-                f"{amount} e prioriza estabilidade da instalacao. Se a carga total passar do "
-                "limite configurado, o sistema reduz a potencia por conector ou agenda sessoes."
+                "O controle de demanda distribui a potência disponível entre "
+                f"{amount} e prioriza a estabilidade da instalação. Se a carga total passar do "
+                "limite configurado, o sistema reduz a potência por conector ou agenda sessões."
             )
         elif "sessao" in lower or "sessão" in lower:
             content = (
-                "Cada sessao deve registrar usuario, conector, horario de inicio e fim, energia "
+                "Cada sessão deve registrar usuário, conector, horário de início e fim, energia "
                 "consumida, status do carregador, regra de tarifa e valor calculado."
             )
         else:
             content = (
-                "Para o ChargeGrid Intelligence, a recomendacao e tratar a recarga como uma "
-                "operacao comercial monitorada: registrar a sessao, acompanhar demanda, aplicar "
-                "guardrails de seguranca e acionar regras de cobranca dinamica."
+                "Para o ChargeGrid Intelligence, a recomendação é tratar a recarga como uma "
+                "operação comercial monitorada: registrar a sessão, acompanhar demanda, aplicar "
+                "guardrails de segurança e acionar regras de cobrança dinâmica."
             )
 
         return ModelResponse(content=content, model_name=self.name, estimated_tokens=_estimate_tokens(content))
@@ -70,11 +80,12 @@ class ConservativeChargeGridModel(RuleBasedChargeGridModel):
 
     def generate(self, user_text: str, context: str, facts: dict[str, str]) -> ModelResponse:
         response = super().generate(user_text, context, facts)
-        content = (
-            response.content
-            + " Para decisao real de instalacao, capacidade eletrica ou manutencao, valide com "
-            "um profissional habilitado e documentacao oficial."
-        )
+        content = response.content
+        if _needs_professional_warning(user_text):
+            content += (
+                " Para decisão real de instalação, capacidade elétrica ou manutenção, valide com "
+                "um profissional habilitado e documentação oficial."
+            )
         return ModelResponse(content=content, model_name=self.name, estimated_tokens=_estimate_tokens(content))
 
 
@@ -106,3 +117,34 @@ Pergunta do usuario:
 
 def _estimate_tokens(text: str) -> int:
     return max(1, round(len(text.split()) * 1.35))
+
+
+def _is_user_registering_site(lower: str, facts: dict[str, str]) -> bool:
+    site = facts.get("local_mencionado")
+    return bool(site) and any(term in lower for term in ["estou usando", "estou analisando", "meu local", "eletroposto"])
+
+
+def _is_user_registering_amount(lower: str, facts: dict[str, str]) -> bool:
+    if "quantas" in lower or "quantos" in lower:
+        return False
+    return bool(facts.get("quantidade_pontos")) and any(
+        term in lower for term in ["existem", "temos", "tenho", "possui", "são", "sao"]
+    ) and any(term in lower for term in ["vagas", "conectores", "carregadores", "pontos"])
+
+
+def _needs_professional_warning(user_text: str) -> bool:
+    lower = user_text.lower()
+    risk_terms = [
+        "instalação",
+        "instalacao",
+        "manutenção",
+        "manutencao",
+        "capacidade elétrica",
+        "capacidade eletrica",
+        "aterramento",
+        "disjuntor",
+        "risco",
+        "abrir",
+        "ligar direto",
+    ]
+    return any(term in lower for term in risk_terms)
