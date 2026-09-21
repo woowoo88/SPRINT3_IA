@@ -112,11 +112,12 @@ O agente manteve a segurança sem prejudicar a fluidez da conversa.
 
 | Integrante | RM | Responsabilidade principal |
 |---|---:|---|
-| Mateus de Oliveira Fernandes Neves | 572431 | Apoio na definição do problema e validação funcional |
-| Pedro Soares de Souza | 571285 | Apoio nos testes de conversa e documentação |
-| Paulo Henrique Lira Bilac de Araújo | 569496 | Apoio na análise de protocolos e arquitetura |
-| Olavo Dadario Vianna Barreto | 569272 | Apoio na organização dos testes e revisão |
-| Angela Sousa Takezawa | 570797 | Apoio na integração, execução no Colab e entrega |
+| Mateus de Oliveira Fernandes Neves | 572431 | Data Structures and Algorithms |
+| Angela Sousa Takezawa | 570797 | Prompt and Artificial Intelligence |
+| Pedro Soares de Souza | 571285 | Modelagem Matemática e Computacional |
+| Paulo Henrique Lira Bilac de Araújo | 569496 | Computer Organization and Architecture / Computer Science |
+| Olavo Dadario Vianna Barreto | 569272 | Pensamento Computacional e Automação com Python / Soluções em Energias Renováveis e Sustentáveis |
+| Jhon | Não informado | Modelagem Linear para Aprendizado de Máquina |
 
 ## 7. Conclusão
 
