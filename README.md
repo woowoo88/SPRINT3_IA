@@ -30,7 +30,8 @@ Configure a chave do Gemini:
 import os
 from getpass import getpass
 
-os.environ["GEMINI_API_KEY"] = getpass("GEMINI_API_KEY: ")
+os.environ.pop("GEMINI_API_KEY", None)
+os.environ["GOOGLE_API_KEY"] = getpass("Cole sua chave Gemini: ")
 os.environ["GEMINI_MODEL"] = "gemini-3.6-flash"
 ```
 
@@ -55,7 +56,7 @@ while True:
 Crie um arquivo `.env` baseado em `.env.example`:
 
 ```env
-GEMINI_API_KEY=sua-chave-aqui
+GOOGLE_API_KEY=sua-chave-aqui
 GEMINI_MODEL=gemini-3.6-flash
 ```
 

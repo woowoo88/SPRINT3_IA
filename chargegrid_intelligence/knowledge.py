@@ -11,8 +11,11 @@ Escopo da solução:
 - aplicação de regras de cobrança dinâmica conforme horário, demanda e tipo de usuário.
 
 Dados de demonstração:
-- site padrão: Campus FIAP - unidade demonstrativa;
 - conectores simulados: CG-01, CG-02, CG-03 e CG-04;
+- status simulado inicial: CG-01 livre, CG-02 livre, CG-03 livre e CG-04 livre;
+- total simulado inicial: 4 vagas/conectores disponíveis;
+- use esses dados simulados como estado operacional padrão quando o usuário perguntar
+  disponibilidade, quantidade de vagas, conectores livres ou status do eletroposto;
 - limite operacional demonstrativo: 22 kW por carregador AC;
 - janela de menor demanda simulada: 22h às 6h;
 - a plataforma deve recomendar verificação com profissional habilitado para qualquer

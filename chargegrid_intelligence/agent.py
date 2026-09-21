@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 
 from dotenv import load_dotenv
 from langchain_core.chat_history import InMemoryChatMessageHistory
@@ -23,7 +24,7 @@ class ChargeGridAgent:
         api_key = gemini_key or google_key
         if not api_key:
             raise RuntimeError(
-                "GEMINI_API_KEY não foi configurada. No Colab, configure a chave antes de criar o agente."
+                "A chave do Gemini não foi configurada. No Colab, configure a chave antes de criar o agente."
             )
 
         os.environ["GOOGLE_API_KEY"] = api_key
@@ -72,6 +73,7 @@ class ChargeGridAgent:
         )
         response = self._llm.invoke(prompt_value)
         answer = _extract_text(response).strip()
+        answer = _clean_answer(answer, message, facts)
         history.add_user_message(message)
         history.add_ai_message(answer)
 
@@ -108,3 +110,39 @@ def _extract_text(response: object) -> str:
             return "\n".join(parts)
 
     return str(content)
+
+
+def _clean_answer(answer: str, user_message: str, facts: dict[str, str]) -> str:
+    cleaned = answer
+    cleaned = re.sub(r"sk-[A-Za-z0-9_-]+", "[chave ocultada]", cleaned)
+    cleaned = re.sub(r"AIza[A-Za-z0-9_-]+", "[chave ocultada]", cleaned)
+    cleaned = re.sub(r"[A-Za-z]:\\[^\n\r\t]+", "[caminho local ocultado]", cleaned)
+    cleaned = re.sub(r"/(?:content|tmp|usr|home)/[^\n\r\t]+", "[caminho local ocultado]", cleaned)
+
+    blocked_terms = [
+        "GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "getpass",
+        "variável de ambiente",
+        "variavel de ambiente",
+    ]
+    lines = [
+        line
+        for line in cleaned.splitlines()
+        if not any(term.lower() in line.lower() for term in blocked_terms)
+    ]
+    cleaned = "\n".join(lines).strip()
+
+    user_lower = user_message.lower()
+    has_user_location = "local_mencionado" in facts or any(
+        term in user_lower for term in ["campus", "fiap", "unidade", "local", "eletroposto"]
+    )
+    if not has_user_location:
+        cleaned = re.sub(
+            r"\b(?:Campus\s+(?:da\s+)?)?FIAP(?:\s*-\s*unidade demonstrativa|\s+Paulista)?\b",
+            "ambiente de demonstração",
+            cleaned,
+            flags=re.IGNORECASE,
+        )
+
+    return cleaned.strip()
