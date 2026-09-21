@@ -117,7 +117,7 @@ O agente manteve a segurança sem prejudicar a fluidez da conversa.
 | Pedro Soares de Souza | 571285 | Modelagem Matemática e Computacional |
 | Paulo Henrique Lira Bilac de Araújo | 569496 | Computer Organization and Architecture / Computer Science |
 | Olavo Dadario Vianna Barreto | 569272 | Pensamento Computacional e Automação com Python / Soluções em Energias Renováveis e Sustentáveis |
-| Jhon | Não informado | Modelagem Linear para Aprendizado de Máquina |
+| Jhon | 571976 | Modelagem Linear para Aprendizado de Máquina |
 
 ## 7. Conclusão
 
