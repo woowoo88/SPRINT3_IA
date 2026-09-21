@@ -1,10 +1,14 @@
 Integrantes:
 
-Mateus de Oliveira Fernandes Neves	   RM 572431
-Pedro Soares de Souza	               RM 571285
-Paulo Henrique Lira Bilac de Araujo	   RM 569496
-Olavo Dadario Vianna Barreto	       RM 569496
-Angela Sousa Takezawa	               RM 570797
+Mateus de Oliveira Fernandes Neves - RM 572431 - Turma: Ciencia da Computacao - 1 ano
+Pedro Soares de Souza - RM 571285 - Turma: Ciencia da Computacao - 1 ano
+Paulo Henrique Lira Bilac de Araujo - RM 569496 - Turma: Ciencia da Computacao - 1 ano
+Olavo Dadario Vianna Barreto - RM 569272 - Turma: Ciencia da Computacao - 1 ano
+Angela Sousa Takezawa - RM 570797 - Turma: Ciencia da Computacao - 1 ano
 
 Repositório:
 https://github.com/mateusofneves/chargewise-ai
+
+Entrega Sprint 03:
+ChargeGrid Intelligence - agente com LangGraph, memoria por sessao, guardrails,
+comparacao de modelos, testes automatizados e relatorio de evolucao.

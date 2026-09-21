@@ -6,6 +6,44 @@ Projeto desenvolvido para o EV Challenge 2026 — GoodWe em parceria com a FIAP.
 
 ---
 
+# Sprint 03 - ChargeGrid Intelligence
+
+Na Sprint 03, o projeto evoluiu para o **ChargeGrid Intelligence**, uma arquitetura baseada em agentes para gerenciamento automatizado de infraestrutura comercial de recarga.
+
+A nova versao foca em:
+
+- controle de demanda em eletropostos comerciais;
+- registro do ciclo de sessao de recarga;
+- integracao conceitual com OCPP e MODBUS;
+- politicas de cobranca dinamica;
+- memoria por sessao;
+- guardrails contra prompt injection, alucinacoes tecnicas e orientacoes inseguras.
+
+O nucleo conversacional foi refatorado com **LangGraph**, separando o fluxo em nos de guardrails, memoria, contexto e resposta. Isso torna o comportamento mais testavel e mais facil de evoluir.
+
+## Como executar a Sprint 03
+
+```bash
+pip install -r requirements.txt
+pip install -e .
+python -m chargegrid_intelligence.cli --model conservative --session demo
+```
+
+Para rodar os testes automatizados:
+
+```bash
+python -m pytest -q
+```
+
+Documentos principais da Sprint 03:
+
+- `docs/relatorio_modelos.md`
+- `docs/casos_teste_sprint03.md`
+- `docs/relatorio_evolucao.md`
+- `output/pdf/relatorio_evolucao_chargegrid.pdf`
+
+---
+
 # Integrantes
 
 | Nome | RM |
@@ -87,6 +125,8 @@ Precisa de informações relacionadas à infraestrutura elétrica, dispositivos 
 |Python	| Desenvolvimento do chatbot |
 |Ollama	| Execução local do modelo de IA |
 |Llama 3.2 1B	| Modelo de linguagem |
+|LangGraph | Framework de agentes da Sprint 03 |
+|Pytest | Testes automatizados |
 |Google Colab	| Ambiente de desenvolvimento |
 |Markdown	| Documentação |
 |Draw.io	| Fluxograma |
@@ -95,6 +135,27 @@ Precisa de informações relacionadas à infraestrutura elétrica, dispositivos 
 ---
 
 # Arquitetura da Solução
+
+## Sprint 03
+
+```text
+Usuario
+   ↓
+ChargeGridAgent (LangGraph)
+   ↓
+Guardrails
+   ↓
+Memoria por sessao
+   ↓
+Contexto ChargeGrid
+   ↓
+Modelo configurado
+   ↓
+Resposta segura e contextualizada
+```
+
+## Sprints 1 e 2
+
 ```text
 Usuário
    ↓
@@ -205,7 +266,22 @@ chargewise-ai/
 ├── docs/
 │   ├── goodwe chatbot.drawio.png
 │   ├── modelo-teste.md
+│   ├── casos_teste_sprint03.md
+│   ├── relatorio_evolucao.md
+│   ├── relatorio_modelos.md
 │   └── system-prompt.md
+│
+├── src/
+│   └── chargegrid_intelligence/
+│       ├── agent.py
+│       ├── cli.py
+│       ├── guardrails.py
+│       ├── knowledge.py
+│       ├── memory.py
+│       └── models.py
+│
+├── tests/
+│   └── test_chargegrid_agent.py
 │
 ├── colab/
 │   ├── chatbot.py
