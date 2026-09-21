@@ -35,7 +35,13 @@ os.environ["GOOGLE_API_KEY"] = getpass("Cole sua chave Gemini: ")
 os.environ["GEMINI_MODEL"] = "gemini-3.6-flash"
 ```
 
-Use o agente:
+Use o agente em modo conversa contínua:
+
+```python
+!python chat_colab.py
+```
+
+Se preferir, execute direto em uma célula:
 
 ```python
 from chargegrid_intelligence import ChargeGridAgent
@@ -45,11 +51,15 @@ agent = ChargeGridAgent()
 while True:
     pergunta = input("Usuário: ")
     if pergunta.lower() in {"sair", "exit", "quit"}:
+        print("ChargeGrid: sessão encerrada.")
         break
 
     resposta = agent.ask(pergunta, session_id="demo")
     print("ChargeGrid:", resposta["answer"])
+    print()
 ```
+
+Você pode fazer quantas perguntas quiser na mesma execução. Para encerrar, digite `sair`.
 
 ## Executar localmente
 
@@ -64,7 +74,7 @@ Instale e rode:
 
 ```bash
 pip install -r requirements.txt
-python -m chargegrid_intelligence.cli --session demo
+python chat_colab.py
 ```
 
 ## Estrutura principal
@@ -77,4 +87,5 @@ chargegrid_intelligence/
 ├── knowledge.py
 ├── memory.py
 └── models.py
+chat_colab.py
 ```
