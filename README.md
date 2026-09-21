@@ -30,7 +30,6 @@ O projeto usa:
 %cd SPRINT3_IA
 
 %pip install -q -r requirements.txt
-%pip install -q --no-deps -e .
 ```
 
 Configure a chave da OpenAI:
@@ -68,14 +67,13 @@ Instale e rode:
 
 ```bash
 pip install -r requirements.txt
-pip install -e .
 python -m chargegrid_intelligence.cli --session demo
 ```
 
 ## Estrutura principal
 
 ```text
-src/chargegrid_intelligence/
+chargegrid_intelligence/
 ├── agent.py
 ├── cli.py
 ├── guardrails.py
