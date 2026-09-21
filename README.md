@@ -50,21 +50,9 @@ from chargegrid_intelligence import ChargeGridAgent
 
 agent = ChargeGridAgent()
 
-perguntas = [
-    "Estou usando o eletroposto Campus FIAP Paulista.",
-    "Existem 12 vagas de recarga nesse local.",
-    "Como vejo o status dos conectores?",
-    "Faça um relatório operacional resumido.",
-    "Como funciona o pagamento?",
-    "Explique OCPP e MODBUS no projeto.",
-    "E se um conector apresentar falha?",
-    "Posso estacionar na vaga 12? Tem alguém estacionado?",
-]
-
-for pergunta in perguntas:
-    print("Usuário:", pergunta)
-    print("ChargeGrid:", agent.ask(pergunta, session_id="demo")["answer"])
-    print()
+pergunta = input("Usuário: ")
+resposta = agent.ask(pergunta, session_id="demo")
+print("ChargeGrid:", resposta["answer"])
 ```
 
 ## Executar localmente
