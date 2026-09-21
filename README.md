@@ -35,6 +35,38 @@ Para rodar os testes automatizados:
 python -m pytest -q
 ```
 
+## Como executar no Google Colab
+
+Use `%pip` no Colab, porque ele instala as dependências no mesmo kernel que executa o notebook.
+
+```python
+!git clone https://github.com/woowoo88/SPRINT3_IA.git
+%cd SPRINT3_IA
+
+%pip install -q -r requirements.txt
+%pip install -q -e .
+```
+
+Depois, valide a instalação:
+
+```python
+from chargegrid_intelligence import ChargeGridAgent
+from chargegrid_intelligence.models import ConservativeChargeGridModel
+
+agent = ChargeGridAgent(model=ConservativeChargeGridModel())
+
+print(agent.ask("Estou usando o eletroposto Campus FIAP Paulista.", session_id="demo")["answer"])
+print(agent.ask("Existem 12 vagas de recarga nesse local.", session_id="demo")["answer"])
+print(agent.ask("Considerando o local que mencionei, quantas vagas existem?", session_id="demo")["answer"])
+```
+
+Se o Colab ainda mostrar `ModuleNotFoundError`, rode esta célula antes do import:
+
+```python
+import sys
+sys.path.insert(0, "/content/SPRINT3_IA/src")
+```
+
 Documentos principais da Sprint 03:
 
 - `docs/relatorio_modelos.md`
