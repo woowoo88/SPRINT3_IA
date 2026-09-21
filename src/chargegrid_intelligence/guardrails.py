@@ -128,14 +128,6 @@ def evaluate_guardrails(text: str) -> GuardrailResult:
         )
 
     if not any(term in lower for term in DOMAIN_TERMS):
-        return GuardrailResult(
-            allowed=False,
-            category="out_of_scope",
-            message=(
-                "Sou focado no ChargeGrid Intelligence, recarga veicular, GoodWe, "
-                "OCPP/MODBUS, sessões, demanda e cobrança dinâmica. Não tenho contexto "
-                "suficiente para responder esse assunto fora do projeto."
-            ),
-        )
+        return GuardrailResult(allowed=True, category="general_question", message="")
 
     return GuardrailResult(allowed=True, category="ok", message="")

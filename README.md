@@ -76,11 +76,14 @@ Se você já tinha clonado uma versão anterior no Colab, rode uma instalação 
 ```python
 %cd /content
 !rm -rf SPRINT3_IA
+%pip uninstall -y chargegrid-intelligence
 !git clone https://github.com/woowoo88/SPRINT3_IA.git
 %cd SPRINT3_IA
 %pip install -q -r requirements.txt
 %pip install -q --no-deps -e .
 ```
+
+Se o Colab continuar mostrando respostas antigas, use `Ambiente de execução > Reiniciar sessão` e rode as células novamente.
 
 Documentos principais da Sprint 03:
 

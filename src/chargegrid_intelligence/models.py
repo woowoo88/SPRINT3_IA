@@ -91,7 +91,7 @@ class RuleBasedChargeGridModel:
                 "não inventar dados técnicos de produto."
             )
         else:
-            content = _general_chargegrid_answer(user_text, facts)
+            content = _adaptive_chargegrid_answer(user_text, facts)
 
         return ModelResponse(content=content, model_name=self.name, estimated_tokens=_estimate_tokens(content))
 
@@ -223,7 +223,7 @@ def _report_answer(facts: dict[str, str]) -> str:
     )
 
 
-def _general_chargegrid_answer(user_text: str, facts: dict[str, str]) -> str:
+def _adaptive_chargegrid_answer(user_text: str, facts: dict[str, str]) -> str:
     site = facts.get("local_mencionado")
     amount = facts.get("quantidade_pontos")
     memory = []
@@ -232,15 +232,13 @@ def _general_chargegrid_answer(user_text: str, facts: dict[str, str]) -> str:
     if amount:
         memory.append(f"pontos de recarga: {amount}")
 
-    memory_text = ""
-    if memory:
-        memory_text = " Considerando a memória da sessão (" + "; ".join(memory) + "),"
-    else:
-        memory_text = " Dentro do escopo do ChargeGrid,"
+    memory_text = "Considerando a memória da sessão (" + "; ".join(memory) + "), " if memory else ""
+    cleaned_question = user_text.strip().rstrip("?!.")
 
     return (
-        f"{memory_text} a resposta deve priorizar operação de recarga comercial: registrar a "
-        "sessão, acompanhar status dos conectores, controlar demanda, aplicar regra de cobrança "
-        "e sinalizar riscos ou falhas para análise técnica. Se você quiser, posso detalhar essa "
-        "pergunta por status, cobrança, OCPP, MODBUS, demanda ou relatório operacional."
+        f"{memory_text}eu trataria a pergunta \"{cleaned_question}\" como uma decisão operacional "
+        "do ChargeGrid. A resposta deve verificar quais dados existem da sessão, identificar o "
+        "impacto em conectores, demanda, cobrança e segurança, e então registrar a ação sugerida "
+        "no histórico do eletroposto. Quando faltarem dados reais, o agente deve dizer isso com "
+        "clareza e trabalhar apenas com valores simulados do protótipo."
     )
