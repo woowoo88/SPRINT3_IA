@@ -10,6 +10,13 @@ class GuardrailResult:
     message: str
 
 
+class ScopeGuardAgent:
+    """Agente responsável por bloquear perguntas fora do contexto ChargeGrid."""
+
+    def evaluate(self, text: str) -> GuardrailResult:
+        return evaluate_guardrails(text)
+
+
 PROMPT_INJECTION_TERMS = [
     "ignore todas as instrucoes",
     "ignore todas as instruções",
@@ -79,6 +86,18 @@ DOMAIN_TERMS = [
     "guardrails",
     "solar",
     "fotovoltaico",
+    "ve",
+    "ev",
+    "carro eletrico",
+    "carro elétrico",
+    "estacao",
+    "estação",
+    "tomada",
+    "plug",
+    "ocupado",
+    "livre",
+    "disponivel",
+    "disponível",
 ]
 
 
@@ -128,6 +147,14 @@ def evaluate_guardrails(text: str) -> GuardrailResult:
         )
 
     if not any(term in lower for term in DOMAIN_TERMS):
-        return GuardrailResult(allowed=True, category="general_question", message="")
+        return GuardrailResult(
+            allowed=False,
+            category="out_of_scope",
+            message=(
+                "Eu sou focado no ChargeGrid Intelligence e posso ajudar com recarga veicular, "
+                "eletropostos, vagas, conectores, sessões, demanda, OCPP, MODBUS, pagamento, "
+                "tarifa dinâmica e relatórios operacionais. Reformule sua pergunta dentro desse contexto."
+            ),
+        )
 
     return GuardrailResult(allowed=True, category="ok", message="")

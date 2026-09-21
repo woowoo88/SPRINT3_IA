@@ -7,7 +7,15 @@ O projeto usa:
 - LangChain para o fluxo conversacional;
 - Google Gemini como modelo real de IA;
 - memória por sessão;
+- agente guardião de escopo para bloquear perguntas fora do contexto ChargeGrid;
 - guardrails básicos contra prompt injection e orientação elétrica perigosa.
+
+## Agentes da aplicação
+
+A aplicação possui dois agentes:
+
+- `ChargeGridAgent`: agente principal, responsável por conversar com o usuário, manter memória da sessão e consultar o Gemini via LangChain.
+- `ScopeGuardAgent`: agente guardião, responsável por avaliar a pergunta antes da chamada ao modelo e bloquear temas fora do ChargeGrid Intelligence.
 
 ## Executar no Google Colab
 

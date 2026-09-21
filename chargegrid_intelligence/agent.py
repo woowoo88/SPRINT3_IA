@@ -8,7 +8,7 @@ from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-from .guardrails import evaluate_guardrails
+from .guardrails import ScopeGuardAgent
 from .knowledge import build_context
 from .memory import update_facts
 from .models import estimate_tokens, system_prompt
@@ -31,6 +31,7 @@ class ChargeGridAgent:
         os.environ.pop("GEMINI_API_KEY", None)
 
         self.model_name = model_name or os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+        self.scope_guard = ScopeGuardAgent()
         self._facts_by_session: dict[str, dict[str, str]] = {}
         self._history_by_session: dict[str, InMemoryChatMessageHistory] = {}
 
@@ -47,7 +48,7 @@ class ChargeGridAgent:
         )
 
     def ask(self, message: str, session_id: str = "default") -> dict[str, object]:
-        guardrail = evaluate_guardrails(message)
+        guardrail = self.scope_guard.evaluate(message)
         facts = self._facts_by_session.get(session_id, {})
 
         if not guardrail.allowed:

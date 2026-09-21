@@ -4,10 +4,16 @@ https://github.com/woowoo88/SPRINT3_IA
 Entrega Sprint 03:
 ChargeGrid Intelligence é um agente conversacional acadêmico para gerenciamento
 comercial de recarga veicular. A solução utiliza LangChain, Google Gemini,
-memória por sessão e guardrails básicos para apoiar consultas sobre eletropostos,
-conectores, sessões de recarga, demanda, OCPP, MODBUS, cobrança dinâmica,
-pagamento e relatórios operacionais.
+memória por sessão e dois agentes integrados para apoiar consultas sobre
+eletropostos, conectores, sessões de recarga, demanda, OCPP, MODBUS, cobrança
+dinâmica, pagamento e relatórios operacionais.
+
+Agentes implementados:
+- ChargeGridAgent: agente principal de conversa, responsável por interpretar a
+  pergunta, usar o contexto do projeto e consultar o Gemini via LangChain.
+- ScopeGuardAgent: agente guardião de escopo, responsável por bloquear perguntas
+  que não fazem parte do contexto ChargeGrid Intelligence.
 
 O agente responde em português do Brasil, com tom natural, sem perguntas
 pré-cadastradas no código. As respostas são geradas em tempo real pelo modelo
-Gemini configurado pela variável GEMINI_API_KEY.
+Gemini configurado no ambiente de execução.
