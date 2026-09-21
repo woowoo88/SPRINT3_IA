@@ -43,31 +43,6 @@ class OpenAIChargeGridModel:
         return ModelResponse(content=content.strip(), model_name=self.name, estimated_tokens=_estimate_tokens(content))
 
 
-class OllamaChargeGridModel:
-    """Real local LLM model through Ollama."""
-
-    def __init__(self, model_name: str = "llama3.2:1b", temperature: float = 0.2):
-        self.name = model_name
-        self.temperature = temperature
-
-    def generate(self, user_text: str, context: str, facts: dict[str, str]) -> ModelResponse:
-        import ollama
-
-        prompt = f"""
-{_system_prompt(context, facts)}
-
-Pergunta do usuário:
-{user_text}
-""".strip()
-        result = ollama.chat(
-            model=self.name,
-            messages=[{"role": "user", "content": prompt}],
-            options={"temperature": self.temperature, "num_predict": 350},
-        )
-        content = result["message"]["content"]
-        return ModelResponse(content=content.strip(), model_name=self.name, estimated_tokens=_estimate_tokens(content))
-
-
 def _system_prompt(context: str, facts: dict[str, str]) -> str:
     return f"""
 Você é o ChargeGrid Intelligence, um agente de IA conversacional do EV Challenge GoodWe/FIAP.
