@@ -4,22 +4,14 @@ Agente de IA para o EV Challenge GoodWe/FIAP, focado em gerenciamento comercial 
 
 O projeto usa:
 
-- LangGraph para fluxo de agente;
-- Google Gemini API como modelo real de IA;
+- LangChain para o fluxo conversacional;
+- Google Gemini como modelo real de IA;
 - memória por sessão;
 - guardrails básicos contra prompt injection e orientação elétrica perigosa.
 
-## Integrantes
-
-| Nome | RM |
-|---|---|
-| Mateus de Oliveira Fernandes Neves | RM 572431 |
-| Pedro Soares de Souza | RM 571285 |
-| Paulo Henrique Lira Bilac de Araujo | RM 569496 |
-| Olavo Dadario Vianna Barreto | RM 569272 |
-| Angela Sousa Takezawa | RM 570797 |
-
 ## Executar no Google Colab
+
+Instale o projeto direto do GitHub:
 
 ```python
 %cd /content
@@ -49,9 +41,13 @@ from chargegrid_intelligence import ChargeGridAgent
 
 agent = ChargeGridAgent()
 
-pergunta = input("Usuário: ")
-resposta = agent.ask(pergunta, session_id="demo")
-print("ChargeGrid:", resposta["answer"])
+while True:
+    pergunta = input("Usuário: ")
+    if pergunta.lower() in {"sair", "exit", "quit"}:
+        break
+
+    resposta = agent.ask(pergunta, session_id="demo")
+    print("ChargeGrid:", resposta["answer"])
 ```
 
 ## Executar localmente
@@ -81,5 +77,3 @@ chargegrid_intelligence/
 ├── memory.py
 └── models.py
 ```
-
-Arquivos das sprints anteriores foram mantidos em `colab/`, `docs/` e `assets/`.

@@ -1,14 +1,13 @@
-Integrantes:
-
-Mateus de Oliveira Fernandes Neves - RM 572431 - Turma: Ciencia da Computacao - 1 ano
-Pedro Soares de Souza - RM 571285 - Turma: Ciencia da Computacao - 1 ano
-Paulo Henrique Lira Bilac de Araujo - RM 569496 - Turma: Ciencia da Computacao - 1 ano
-Olavo Dadario Vianna Barreto - RM 569272 - Turma: Ciencia da Computacao - 1 ano
-Angela Sousa Takezawa - RM 570797 - Turma: Ciencia da Computacao - 1 ano
-
 Repositório:
-https://github.com/mateusofneves/chargewise-ai
+https://github.com/woowoo88/SPRINT3_IA
 
 Entrega Sprint 03:
-ChargeGrid Intelligence - agente com LangGraph, memoria por sessao, guardrails,
-comparacao de modelos, testes automatizados e relatorio de evolucao.
+ChargeGrid Intelligence é um agente conversacional acadêmico para gerenciamento
+comercial de recarga veicular. A solução utiliza LangChain, Google Gemini,
+memória por sessão e guardrails básicos para apoiar consultas sobre eletropostos,
+conectores, sessões de recarga, demanda, OCPP, MODBUS, cobrança dinâmica,
+pagamento e relatórios operacionais.
+
+O agente responde em português do Brasil, com tom natural, sem perguntas
+pré-cadastradas no código. As respostas são geradas em tempo real pelo modelo
+Gemini configurado pela variável GEMINI_API_KEY.

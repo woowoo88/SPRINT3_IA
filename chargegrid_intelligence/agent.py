@@ -1,104 +1,93 @@
 from __future__ import annotations
 
-from typing import Annotated, TypedDict
+import os
 
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph import END, START, StateGraph
-from langgraph.graph.message import add_messages
+from dotenv import load_dotenv
+from langchain_core.chat_history import InMemoryChatMessageHistory
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from .guardrails import evaluate_guardrails
 from .knowledge import build_context
 from .memory import update_facts
-from .models import GeminiChargeGridModel
-
-
-class AgentState(TypedDict):
-    messages: Annotated[list[BaseMessage], add_messages]
-    facts: dict[str, str]
-    guardrail_category: str
-    context: str
-    model_name: str
-    estimated_tokens: int
+from .models import estimate_tokens, system_prompt
 
 
 class ChargeGridAgent:
-    """LangGraph agent for ChargeGrid Intelligence."""
+    """Agente conversacional do ChargeGrid Intelligence usando LangChain e Gemini."""
 
-    def __init__(self, model=None):
-        self.model = model or GeminiChargeGridModel()
-        self.graph = self._build_graph()
+    def __init__(self, model_name: str | None = None, temperature: float = 0.2):
+        load_dotenv()
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        if not api_key:
+            raise RuntimeError(
+                "GEMINI_API_KEY não foi configurada. No Colab, configure a chave antes de criar o agente."
+            )
+
+        os.environ["GOOGLE_API_KEY"] = api_key
+        self.model_name = model_name or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        self._facts_by_session: dict[str, dict[str, str]] = {}
+        self._history_by_session: dict[str, InMemoryChatMessageHistory] = {}
+
+        llm = ChatGoogleGenerativeAI(
+            model=self.model_name,
+            temperature=temperature,
+            google_api_key=api_key,
+        )
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                ("system", "{system_prompt}"),
+                MessagesPlaceholder(variable_name="history"),
+                ("human", "{input}"),
+            ]
+        )
+        chain = prompt | llm
+        self._chain = RunnableWithMessageHistory(
+            chain,
+            self._get_history,
+            input_messages_key="input",
+            history_messages_key="history",
+        )
 
     def ask(self, message: str, session_id: str = "default") -> dict[str, object]:
-        result = self.graph.invoke(
-            {"messages": [HumanMessage(content=message)]},
-            config={"configurable": {"thread_id": session_id}},
+        guardrail = evaluate_guardrails(message)
+        facts = self._facts_by_session.get(session_id, {})
+
+        if not guardrail.allowed:
+            return {
+                "answer": guardrail.message,
+                "facts": facts,
+                "guardrail_category": guardrail.category,
+                "model": "guardrail",
+                "estimated_tokens": estimate_tokens(guardrail.message),
+            }
+
+        facts = update_facts(message, facts)
+        self._facts_by_session[session_id] = facts
+        context = build_context(facts)
+
+        response = self._chain.invoke(
+            {
+                "input": message,
+                "system_prompt": system_prompt(context=context, facts=facts),
+            },
+            config={"configurable": {"session_id": session_id}},
         )
-        answer = result["messages"][-1].content
+        answer = str(getattr(response, "content", response)).strip()
+
+        if guardrail.message:
+            answer = f"{guardrail.message}\n\n{answer}"
+
         return {
             "answer": answer,
-            "facts": result.get("facts", {}),
-            "guardrail_category": result.get("guardrail_category", "ok"),
-            "model": result.get("model_name", getattr(self.model, "name", "unknown")),
-            "estimated_tokens": result.get("estimated_tokens", 0),
+            "facts": facts,
+            "guardrail_category": guardrail.category,
+            "model": self.model_name,
+            "estimated_tokens": estimate_tokens(answer),
         }
 
-    def _build_graph(self):
-        workflow = StateGraph(AgentState)
-        workflow.add_node("guardrails", self._guardrails_node)
-        workflow.add_node("memory", self._memory_node)
-        workflow.add_node("context", self._context_node)
-        workflow.add_node("respond", self._respond_node)
-
-        workflow.add_edge(START, "guardrails")
-        workflow.add_conditional_edges(
-            "guardrails",
-            self._route_guardrails,
-            {"blocked": END, "allowed": "memory"},
-        )
-        workflow.add_edge("memory", "context")
-        workflow.add_edge("context", "respond")
-        workflow.add_edge("respond", END)
-
-        return workflow.compile(checkpointer=MemorySaver())
-
-    def _guardrails_node(self, state: AgentState) -> dict[str, object]:
-        text = _last_user_message(state["messages"])
-        result = evaluate_guardrails(text)
-        updates: dict[str, object] = {"guardrail_category": result.category}
-        if not result.allowed:
-            updates["messages"] = [AIMessage(content=result.message)]
-            updates["estimated_tokens"] = max(1, round(len(result.message.split()) * 1.35))
-            updates["model_name"] = "guardrail"
-        elif result.message:
-            updates["messages"] = [AIMessage(content=result.message)]
-        return updates
-
-    def _route_guardrails(self, state: AgentState) -> str:
-        return "blocked" if state.get("model_name") == "guardrail" else "allowed"
-
-    def _memory_node(self, state: AgentState) -> dict[str, object]:
-        facts = state.get("facts") or {}
-        return {"facts": update_facts(_last_user_message(state["messages"]), facts)}
-
-    def _context_node(self, state: AgentState) -> dict[str, object]:
-        return {"context": build_context(state.get("facts") or {})}
-
-    def _respond_node(self, state: AgentState) -> dict[str, object]:
-        text = _last_user_message(state["messages"])
-        response = self.model.generate(text, state.get("context", ""), state.get("facts") or {})
-        prefix = ""
-        if state.get("guardrail_category") in {"legal_caution", "financial_caution"}:
-            prefix = state["messages"][-1].content + "\n\n"
-        return {
-            "messages": [AIMessage(content=prefix + response.content)],
-            "model_name": response.model_name,
-            "estimated_tokens": response.estimated_tokens,
-        }
-
-
-def _last_user_message(messages: list[BaseMessage]) -> str:
-    for message in reversed(messages):
-        if isinstance(message, HumanMessage):
-            return str(message.content)
-    return ""
+    def _get_history(self, session_id: str) -> InMemoryChatMessageHistory:
+        if session_id not in self._history_by_session:
+            self._history_by_session[session_id] = InMemoryChatMessageHistory()
+        return self._history_by_session[session_id]

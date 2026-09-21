@@ -73,7 +73,7 @@ DOMAIN_TERMS = [
     "comunicação",
     "arquitetura",
     "agente",
-    "langgraph",
+    "langchain",
     "memoria",
     "memória",
     "guardrails",
