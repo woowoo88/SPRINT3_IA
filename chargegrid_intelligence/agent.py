@@ -16,7 +16,7 @@ from .models import estimate_tokens, system_prompt
 class ChargeGridAgent:
     """Agente conversacional do ChargeGrid Intelligence usando LangChain e Gemini."""
 
-    def __init__(self, model_name: str | None = None, temperature: float = 0.2):
+    def __init__(self, model_name: str | None = None, temperature: float | None = None):
         load_dotenv()
         gemini_key = os.getenv("GEMINI_API_KEY")
         google_key = os.getenv("GOOGLE_API_KEY")
@@ -26,18 +26,17 @@ class ChargeGridAgent:
                 "GEMINI_API_KEY não foi configurada. No Colab, configure a chave antes de criar o agente."
             )
 
-        if gemini_key and google_key:
-            os.environ.pop("GOOGLE_API_KEY", None)
+        os.environ["GOOGLE_API_KEY"] = api_key
+        os.environ.pop("GEMINI_API_KEY", None)
 
         self.model_name = model_name or os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
         self._facts_by_session: dict[str, dict[str, str]] = {}
         self._history_by_session: dict[str, InMemoryChatMessageHistory] = {}
 
-        self._llm = ChatGoogleGenerativeAI(
-            model=self.model_name,
-            temperature=temperature,
-            google_api_key=api_key,
-        )
+        llm_config: dict[str, object] = {"model": self.model_name, "google_api_key": api_key}
+        if temperature is not None:
+            llm_config["temperature"] = temperature
+        self._llm = ChatGoogleGenerativeAI(**llm_config)
         self._prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", "{system_prompt}"),
@@ -72,7 +71,7 @@ class ChargeGridAgent:
             }
         )
         response = self._llm.invoke(prompt_value)
-        answer = str(getattr(response, "content", response)).strip()
+        answer = _extract_text(response).strip()
         history.add_user_message(message)
         history.add_ai_message(answer)
 
@@ -91,3 +90,21 @@ class ChargeGridAgent:
         if session_id not in self._history_by_session:
             self._history_by_session[session_id] = InMemoryChatMessageHistory()
         return self._history_by_session[session_id]
+
+
+def _extract_text(response: object) -> str:
+    content = getattr(response, "content", response)
+    if isinstance(content, str):
+        return content
+
+    if isinstance(content, list):
+        parts: list[str] = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict) and isinstance(item.get("text"), str):
+                parts.append(item["text"])
+        if parts:
+            return "\n".join(parts)
+
+    return str(content)
