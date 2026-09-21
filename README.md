@@ -57,6 +57,15 @@ os.environ["OPENAI_API_KEY"] = getpass("OPENAI_API_KEY: ")
 os.environ["OPENAI_MODEL"] = "gpt-4o-mini"
 ```
 
+Em execução local, você também pode criar um arquivo `.env` baseado no `.env.example`:
+
+```env
+OPENAI_API_KEY=sua-chave-aqui
+OPENAI_MODEL=gpt-4o-mini
+```
+
+O arquivo `.env` não deve ser enviado ao GitHub.
+
 Depois, execute o agente com modelo real:
 
 ```python
@@ -72,6 +81,7 @@ for pergunta in [
     "Como funciona o pagamento?",
     "Explique OCPP e MODBUS no projeto.",
     "E se um conector apresentar falha?",
+    "Posso estacionar na vaga 12? Tem alguém estacionado?",
 ]:
     print("Usuário:", pergunta)
     print("ChargeGrid:", agent.ask(pergunta, session_id="demo")["answer"])

@@ -59,7 +59,7 @@ def build_pdf() -> None:
         ["Arquitetura", "Script monolítico", "Agente LangGraph com nós"],
         ["Memória", "Histórico manual", "Memória por sessão"],
         ["Segurança", "Filtro simples", "Guardrails por categoria"],
-        ["Modelos", "Llama 3.2 1B", "rule-v1, conservative-v1, Ollama opcional"],
+        ["Modelos", "Llama 3.2 1B", "OpenAI por API, com Ollama como alternativa"],
         ["Testes", "Manuais", "Pytest + casos documentados"],
     ]
     table = Table(table_data, colWidths=[3.1 * cm, 6.1 * cm, 7.0 * cm])
@@ -82,7 +82,7 @@ def build_pdf() -> None:
     story.append(paragraph("4. Problemas encontrados e soluções", styles["Heading2"]))
     problems = [
         "Baixa separação de responsabilidades: a solução foi modularizar o pacote em agente, memória, guardrails, conhecimento e modelos.",
-        "Dependência de um único modelo local: a solução foi criar modelos offline para testes e deixar Ollama como adaptador opcional.",
+        "Dependência de um único modelo local: a solução foi usar OpenAI por API como modelo real principal e deixar Ollama como alternativa local.",
         "Risco de prompt injection e respostas perigosas: a solução foi executar guardrails antes da etapa de resposta.",
     ]
     for item in problems:
