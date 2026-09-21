@@ -13,7 +13,4 @@ Agentes implementados:
   pergunta, usar o contexto do projeto e consultar o Gemini via LangChain.
 - ScopeGuardAgent: agente guardião de escopo, responsável por bloquear perguntas
   que não fazem parte do contexto ChargeGrid Intelligence.
-
-O agente responde em português do Brasil, com tom natural, sem perguntas
-pré-cadastradas no código. As respostas são geradas em tempo real pelo modelo
-Gemini configurado no ambiente de execução.
+.
