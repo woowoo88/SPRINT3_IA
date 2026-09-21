@@ -17,7 +17,7 @@ O framework escolhido foi o LangGraph, pois ele permite representar o fluxo do a
 | context | montar o contexto do ChargeGrid com dados simulados e memória |
 | respond | gerar a resposta final usando o modelo configurado |
 
-A memória por sessão é gerenciada pelo checkpointer em memória do LangGraph, usando `thread_id` como identificador da conversa. Assim, duas sessões diferentes não misturam informações. Para os testes, foram criados um modelo determinístico offline, um modelo conservador e um adaptador opcional para Ollama.
+A memória por sessão é gerenciada pelo checkpointer em memória do LangGraph, usando `thread_id` como identificador da conversa. Assim, duas sessões diferentes não misturam informações. Para a versão final, o agente utiliza um modelo real da OpenAI por padrão e mantém Ollama como alternativa local real.
 
 O principal trade-off foi aceitar uma arquitetura um pouco mais complexa em troca de mais controle. O chatbot antigo era mais simples de explicar, mas o novo fluxo facilita testes, manutenção e extensão futura para LLMs reais, ferramentas externas e integração com APIs.
 
@@ -28,7 +28,7 @@ O principal trade-off foi aceitar uma arquitetura um pouco mais complexa em troc
 | Arquitetura | Script Python monolítico com prompt e histórico manual | Grafo de agente com nós separados no LangGraph |
 | Memória | Lista de mensagens enviada ao modelo | Memória por sessão via `thread_id` e checkpointer |
 | Escopo | Filtro simples por palavras-chave | Guardrails por categoria: escopo, injection, risco elétrico, jurídico e financeiro |
-| Modelo | Llama 3.2 1B via Ollama | Modelos comparados: rule-v1, conservative-v1 e Ollama opcional |
+| Modelo | Llama 3.2 1B via Ollama | Modelo real OpenAI por padrão e Ollama como alternativa local |
 | Testes | Casos manuais documentados | Testes automatizados com `pytest` |
 | Segurança | Recusa básica para fora de contexto | Bloqueio de prompt injection e orientações elétricas perigosas |
 | Métricas | Pouco estruturadas | Latência local inferior a 1s nos testes automatizados e tokens estimados por resposta |
@@ -39,7 +39,7 @@ Resultado geral: a nova arquitetura tornou o chatbot melhor para demonstração 
 
 O primeiro problema foi a baixa separação de responsabilidades. Na versão anterior, prompt, contexto, filtro, memória e chamada ao modelo ficavam no mesmo arquivo. A alternativa seria apenas melhorar o script antigo, mas a solução adotada foi criar um pacote em `src/chargegrid_intelligence`, separando agente, memória, guardrails, conhecimento e modelos.
 
-O segundo problema foi a dependência de um único modelo local. Se o Ollama não estivesse instalado, a demonstração poderia falhar. A solução foi criar modelos determinísticos offline para testes e manter o Ollama como opcional. Essa decisão aumenta a confiabilidade da entrega sem impedir uma evolução futura.
+O segundo problema foi a dependência de um único modelo local. Se o Ollama não estivesse instalado, a demonstração poderia falhar. A solução foi usar OpenAI como modelo real principal e manter o Ollama como alternativa local. Essa decisão aproxima a entrega de um agente de IA real e reduz o risco de respostas rígidas ou coladas.
 
 O terceiro problema foi a segurança. Prompt injection e pedidos perigosos poderiam induzir o chatbot a sair do escopo. A solução foi colocar guardrails antes da geração da resposta, bloqueando tentativas de revelar prompt interno, comandos fora do domínio e instruções elétricas inseguras.
 

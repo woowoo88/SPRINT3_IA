@@ -26,7 +26,7 @@ O nucleo conversacional foi refatorado com **LangGraph**, separando o fluxo em n
 ```bash
 pip install -r requirements.txt
 pip install -e .
-python -m chargegrid_intelligence.cli --model rule --session demo
+python -m chargegrid_intelligence.cli --model openai --session demo
 ```
 
 Para rodar os testes automatizados:
@@ -47,7 +47,17 @@ Use `%pip` no Colab, porque ele instala as dependências no mesmo kernel que exe
 %pip install -q --no-deps -e .
 ```
 
-Depois, valide a instalação:
+Configure sua chave da OpenAI no Colab:
+
+```python
+import os
+from getpass import getpass
+
+os.environ["OPENAI_API_KEY"] = getpass("OPENAI_API_KEY: ")
+os.environ["OPENAI_MODEL"] = "gpt-4o-mini"
+```
+
+Depois, execute o agente com modelo real:
 
 ```python
 from chargegrid_intelligence import ChargeGridAgent
@@ -57,7 +67,11 @@ agent = ChargeGridAgent()
 for pergunta in [
     "Estou usando o eletroposto Campus FIAP Paulista.",
     "Existem 12 vagas de recarga nesse local.",
-    "Considerando o local que mencionei, quantas vagas existem?",
+    "Como vejo o status dos conectores?",
+    "Faça um relatório operacional resumido.",
+    "Como funciona o pagamento?",
+    "Explique OCPP e MODBUS no projeto.",
+    "E se um conector apresentar falha?",
 ]:
     print("Usuário:", pergunta)
     print("ChargeGrid:", agent.ask(pergunta, session_id="demo")["answer"])
@@ -84,6 +98,8 @@ Se você já tinha clonado uma versão anterior no Colab, rode uma instalação 
 ```
 
 Se o Colab continuar mostrando respostas antigas, use `Ambiente de execução > Reiniciar sessão` e rode as células novamente.
+
+Observação: os testes de resposta real usam `OPENAI_API_KEY`. Sem a chave, esses testes são ignorados; os testes de guardrails continuam rodando.
 
 Documentos principais da Sprint 03:
 

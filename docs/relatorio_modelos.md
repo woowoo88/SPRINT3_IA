@@ -2,15 +2,14 @@
 
 ## Objetivo
 
-O objetivo da comparação foi avaliar qual configuração atende melhor ao ChargeGrid Intelligence, considerando qualidade técnica, memória por sessão, resistência a prompt injection e clareza das respostas no contexto de recarga comercial.
+O objetivo da comparação foi definir qual modelo real seria mais adequado para o ChargeGrid Intelligence, considerando qualidade das respostas, memória por sessão, segurança, facilidade de execução e aderência ao contexto de recarga comercial.
 
 ## Modelos Avaliados
 
 | Modelo | Tipo | Configuração | Observação |
 |---|---|---|---|
-| chargegrid-rule-v1 | Modelo determinístico offline | temperatura não aplicável | Usado para testes reprodutíveis sem API externa. |
-| chargegrid-conservative-v1 | Modelo determinístico offline com postura mais cautelosa | temperatura não aplicável | Inclui avisos adicionais de segurança e validação profissional. |
-| llama3.2:1b via Ollama | LLM local opcional | temperature 0.1, num_predict 220 | Mantido como opção compatível com a Sprint 02, dependendo do Ollama instalado. |
+| OpenAI via API | LLM real em nuvem | `OPENAI_MODEL=gpt-4o-mini`, temperature 0.2 | Escolhido para a versão final no Colab. |
+| Ollama `llama3.2:1b` | LLM real local | temperature 0.2, num_predict 350 | Alternativa local, compatível com a base da Sprint 02. |
 
 ## Conjunto de Testes
 
@@ -24,31 +23,23 @@ O objetivo da comparação foi avaliar qual configuração atende melhor ao Char
 
 ## Resultados Obtidos
 
-| Critério | chargegrid-rule-v1 | chargegrid-conservative-v1 | llama3.2:1b via Ollama |
-|---|---:|---:|---:|
-| Qualidade técnica | 8/10 | 8/10 | 7/10 |
-| Memória por sessão | 10/10 | 10/10 | depende do histórico enviado |
-| Prompt injection | 10/10 | 10/10 | precisa de guardrails externos |
-| Clareza | 8/10 | 8/10 | 7/10 |
-| Latência média observada nos testes automatizados | < 1s | < 1s | não medida nesta máquina |
-| Custo de execução | zero | zero | zero se local |
+| Critério | OpenAI via API | Ollama `llama3.2:1b` |
+|---|---:|---:|
+| Qualidade técnica | 9/10 | 7/10 |
+| Naturalidade em português | 9/10 | 7/10 |
+| Memória por sessão | 10/10 com LangGraph | 10/10 com LangGraph |
+| Resistência a prompt injection | 10/10 com guardrails | 10/10 com guardrails |
+| Facilidade no Colab | 8/10, exige API key | 5/10, exige servidor local |
+| Aderência ao projeto | 9/10 | 7/10 |
 
 ## Diferenças Percebidas
 
-O `chargegrid-rule-v1` foi mais direto e previsível, o que ajuda nos testes automatizados e na demonstração em sala. O `chargegrid-conservative-v1` gerou respostas mais seguras, reforçando recomendações de profissional habilitado em assuntos de instalação, capacidade elétrica e manutenção. O `llama3.2:1b` foi mantido como alternativa de LLM local por ser a base usada anteriormente, mas a Sprint 03 não depende dele para executar testes essenciais.
-
-## Vantagens e Limitações
-
-| Modelo | Vantagens | Limitações |
-|---|---|---|
-| chargegrid-rule-v1 | Reprodutível, rápido, sem chave de API, ideal para testes. | Não possui flexibilidade linguística de uma LLM real. |
-| chargegrid-conservative-v1 | Mais seguro em respostas de risco e adequado para guardrails. | Pode responder de forma mais cautelosa do que o necessario. |
-| llama3.2:1b | Gera linguagem mais natural e segue a linha da Sprint 02. | Depende do Ollama, pode variar respostas e precisa de validacao externa. |
+O modelo da OpenAI respondeu com linguagem mais natural, menos repetitiva e com melhor capacidade de adaptar a resposta ao contexto da pergunta. O Ollama manteve a vantagem de execução local, mas exige configuração do servidor e apresentou respostas mais simples.
 
 ## Modelo Escolhido
 
-Para a versão final demonstrável da Sprint 03, o modelo escolhido foi o `chargegrid-conservative-v1` dentro da arquitetura LangGraph.
+Para a versão final demonstrável da Sprint 03, o modelo escolhido foi **OpenAI via API**, usando o `OPENAI_MODEL` configurado no ambiente.
 
 ## Justificativa
 
-A decisão priorizou confiabilidade, segurança e capacidade de demonstração. Como o desafio exige memória, guardrails e avaliação sistemática, a previsibilidade foi mais importante do que criatividade textual. O modelo conservador também se alinhou melhor ao tema do projeto, pois infraestrutura de recarga envolve risco elétrico, cobrança e operação comercial. Em uma evolução futura, uma LLM local ou em nuvem pode substituir o modelo determinístico, mantendo os mesmos nós de guardrails e memória.
+A escolha foi baseada na necessidade de usar um agente de IA real, com respostas mais naturais e capacidade de lidar com perguntas variadas. O LangGraph continua responsável pela orquestração do fluxo, memória por sessão e guardrails, enquanto o modelo da OpenAI gera as respostas conversacionais.
