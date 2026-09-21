@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
+import unicodedata
 
 
 @dataclass(frozen=True)
@@ -13,8 +15,8 @@ class GuardrailResult:
 class ScopeGuardAgent:
     """Agente responsável por bloquear perguntas fora do contexto ChargeGrid."""
 
-    def evaluate(self, text: str) -> GuardrailResult:
-        return evaluate_guardrails(text)
+    def evaluate(self, text: str, has_context: bool = False) -> GuardrailResult:
+        return evaluate_guardrails(text, has_context=has_context)
 
 
 PROMPT_INJECTION_TERMS = [
@@ -64,6 +66,14 @@ DOMAIN_TERMS = [
     "conectores",
     "status",
     "pagamento",
+    "pagar",
+    "cobrar",
+    "custo",
+    "preco",
+    "preço",
+    "pix",
+    "cartao",
+    "cartão",
     "relatorio",
     "relatório",
     "resumo",
@@ -98,13 +108,64 @@ DOMAIN_TERMS = [
     "livre",
     "disponivel",
     "disponível",
+    "disponiveis",
+    "disponíveis",
+    "quanto",
+    "quantos",
+    "quantas",
+    "sessao",
+    "sessões",
+    "carregar",
+    "carregamento",
 ]
 
 
-def evaluate_guardrails(text: str) -> GuardrailResult:
-    lower = text.lower()
+FOLLOW_UP_TERMS = [
+    "e",
+    "isso",
+    "esse",
+    "essa",
+    "esses",
+    "essas",
+    "como",
+    "quanto",
+    "quantos",
+    "quantas",
+    "qual",
+    "quais",
+    "por que",
+    "porque",
+    "sim",
+    "nao",
+    "não",
+    "me explica",
+    "detalhe",
+    "resuma",
+]
 
-    if any(term in lower for term in PROMPT_INJECTION_TERMS):
+GREETINGS = ["oi", "ola", "olá", "bom dia", "boa tarde", "boa noite"]
+
+OFF_TOPIC_TERMS = [
+    "receita",
+    "bolo",
+    "futebol",
+    "filme",
+    "musica",
+    "música",
+    "namoro",
+    "fofoca",
+    "jogo do bicho",
+    "loteria",
+    "historia do brasil",
+    "história do brasil",
+]
+
+
+def evaluate_guardrails(text: str, has_context: bool = False) -> GuardrailResult:
+    lower = text.lower()
+    normalized = _normalize(text)
+
+    if any(_normalize(term) in normalized for term in PROMPT_INJECTION_TERMS):
         return GuardrailResult(
             allowed=False,
             category="prompt_injection",
@@ -115,7 +176,7 @@ def evaluate_guardrails(text: str) -> GuardrailResult:
             ),
         )
 
-    if any(term in lower for term in ELECTRICAL_RISK_TERMS):
+    if any(_normalize(term) in normalized for term in ELECTRICAL_RISK_TERMS):
         return GuardrailResult(
             allowed=False,
             category="electrical_safety",
@@ -126,7 +187,7 @@ def evaluate_guardrails(text: str) -> GuardrailResult:
             ),
         )
 
-    if any(term in lower for term in LEGAL_TERMS):
+    if any(_normalize(term) in normalized for term in LEGAL_TERMS):
         return GuardrailResult(
             allowed=True,
             category="legal_caution",
@@ -136,7 +197,7 @@ def evaluate_guardrails(text: str) -> GuardrailResult:
             ),
         )
 
-    if any(term in lower for term in FINANCIAL_TERMS):
+    if any(_normalize(term) in normalized for term in FINANCIAL_TERMS):
         return GuardrailResult(
             allowed=True,
             category="financial_caution",
@@ -146,7 +207,17 @@ def evaluate_guardrails(text: str) -> GuardrailResult:
             ),
         )
 
-    if not any(term in lower for term in DOMAIN_TERMS):
+    if any(_normalize(term) in normalized for term in GREETINGS):
+        return GuardrailResult(allowed=True, category="greeting", message="")
+
+    has_domain_term = any(_normalize(term) in normalized for term in DOMAIN_TERMS)
+    is_follow_up = has_context and (
+        len(normalized.split()) <= 8
+        or any(_normalize(term) in normalized for term in FOLLOW_UP_TERMS)
+    )
+    has_explicit_off_topic = any(_normalize(term) in normalized for term in OFF_TOPIC_TERMS)
+
+    if not has_domain_term and not is_follow_up:
         return GuardrailResult(
             allowed=False,
             category="out_of_scope",
@@ -157,4 +228,21 @@ def evaluate_guardrails(text: str) -> GuardrailResult:
             ),
         )
 
+    if has_explicit_off_topic and not has_domain_term:
+        return GuardrailResult(
+            allowed=False,
+            category="out_of_scope",
+            message=(
+                "Essa pergunta não faz parte do contexto do ChargeGrid Intelligence. "
+                "Posso ajudar com recarga veicular, vagas, conectores, sessões, demanda, "
+                "pagamento, tarifa dinâmica, OCPP, MODBUS e relatórios operacionais."
+            ),
+        )
+
     return GuardrailResult(allowed=True, category="ok", message="")
+
+
+def _normalize(text: str) -> str:
+    without_accents = unicodedata.normalize("NFKD", text)
+    without_accents = "".join(char for char in without_accents if not unicodedata.combining(char))
+    return re.sub(r"\s+", " ", without_accents.lower()).strip()

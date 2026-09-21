@@ -48,8 +48,10 @@ class ChargeGridAgent:
         )
 
     def ask(self, message: str, session_id: str = "default") -> dict[str, object]:
-        guardrail = self.scope_guard.evaluate(message)
         facts = self._facts_by_session.get(session_id, {})
+        history = self._get_history(session_id)
+        has_context = bool(facts or history.messages)
+        guardrail = self.scope_guard.evaluate(message, has_context=has_context)
 
         if not guardrail.allowed:
             return {
@@ -64,7 +66,6 @@ class ChargeGridAgent:
         self._facts_by_session[session_id] = facts
         context = build_context(facts)
 
-        history = self._get_history(session_id)
         prompt_value = self._prompt.invoke(
             {
                 "input": message,
