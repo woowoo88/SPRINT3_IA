@@ -10,7 +10,7 @@ from langgraph.graph.message import add_messages
 from .guardrails import evaluate_guardrails
 from .knowledge import build_context
 from .memory import update_facts
-from .models import OpenAIChargeGridModel
+from .models import GeminiChargeGridModel
 
 
 class AgentState(TypedDict):
@@ -26,7 +26,7 @@ class ChargeGridAgent:
     """LangGraph agent for ChargeGrid Intelligence."""
 
     def __init__(self, model=None):
-        self.model = model or OpenAIChargeGridModel()
+        self.model = model or GeminiChargeGridModel()
         self.graph = self._build_graph()
 
     def ask(self, message: str, session_id: str = "default") -> dict[str, object]:

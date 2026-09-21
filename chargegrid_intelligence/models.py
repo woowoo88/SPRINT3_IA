@@ -13,33 +13,31 @@ class ModelResponse:
     estimated_tokens: int
 
 
-class OpenAIChargeGridModel:
-    """Real OpenAI-backed model used by ChargeGrid Intelligence."""
+class GeminiChargeGridModel:
+    """Real Gemini-backed model used by ChargeGrid Intelligence."""
 
     def __init__(self, model_name: str | None = None, temperature: float = 0.2):
-        self.name = model_name or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        self.name = model_name or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
         self.temperature = temperature
 
     def generate(self, user_text: str, context: str, facts: dict[str, str]) -> ModelResponse:
         load_dotenv()
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if not api_key:
             raise RuntimeError(
-                "OPENAI_API_KEY não foi configurada. No Colab, configure a chave antes de criar o agente."
+                "GEMINI_API_KEY não foi configurada. No Colab, configure a chave antes de criar o agente."
             )
 
-        from openai import OpenAI
+        from google import genai
+        from google.genai import types
 
-        client = OpenAI(api_key=api_key)
-        response = client.chat.completions.create(
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
             model=self.name,
-            temperature=self.temperature,
-            messages=[
-                {"role": "system", "content": _system_prompt(context, facts)},
-                {"role": "user", "content": user_text},
-            ],
+            contents=f"{_system_prompt(context, facts)}\n\nPergunta do usuário:\n{user_text}",
+            config=types.GenerateContentConfig(temperature=self.temperature),
         )
-        content = response.choices[0].message.content or ""
+        content = response.text or ""
         return ModelResponse(content=content.strip(), model_name=self.name, estimated_tokens=_estimate_tokens(content))
 
 

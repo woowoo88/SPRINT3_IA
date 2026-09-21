@@ -5,7 +5,7 @@ Agente de IA para o EV Challenge GoodWe/FIAP, focado em gerenciamento comercial 
 O projeto usa:
 
 - LangGraph para fluxo de agente;
-- OpenAI API como modelo real de IA;
+- Google Gemini API como modelo real de IA;
 - memória por sessão;
 - guardrails básicos contra prompt injection e orientação elétrica perigosa.
 
@@ -32,14 +32,14 @@ O projeto usa:
 %pip install -q -r requirements.txt
 ```
 
-Configure a chave da OpenAI:
+Configure a chave do Gemini:
 
 ```python
 import os
 from getpass import getpass
 
-os.environ["OPENAI_API_KEY"] = getpass("OPENAI_API_KEY: ")
-os.environ["OPENAI_MODEL"] = "gpt-4o-mini"
+os.environ["GEMINI_API_KEY"] = getpass("GEMINI_API_KEY: ")
+os.environ["GEMINI_MODEL"] = "gemini-2.5-flash"
 ```
 
 Use o agente:
@@ -59,8 +59,8 @@ print("ChargeGrid:", resposta["answer"])
 Crie um arquivo `.env` baseado em `.env.example`:
 
 ```env
-OPENAI_API_KEY=sua-chave-aqui
-OPENAI_MODEL=gpt-4o-mini
+GEMINI_API_KEY=sua-chave-aqui
+GEMINI_MODEL=gemini-2.5-flash
 ```
 
 Instale e rode:
