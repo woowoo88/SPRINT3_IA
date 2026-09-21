@@ -36,43 +36,62 @@ class RuleBasedChargeGridModel:
                 content = f"Você informou anteriormente que existem {amount} pontos/vagas de recarga."
             else:
                 content = "Ainda não tenho uma quantidade de vagas registrada nesta sessão."
-        elif "local" in lower or "condominio" in lower or "condomínio" in lower:
+        elif _has_any(lower, ["local", "condominio", "condomínio", "onde"]):
             site = facts.get("local_mencionado")
             if site:
                 content = f"O local mencionado na sessão foi {site}."
             else:
                 content = "Ainda não tenho um local específico salvo na memória da sessão."
-        elif "ocpp" in lower or "modbus" in lower:
+        elif _has_any(lower, ["ocpp", "modbus", "protocolo", "comunicação", "comunicacao"]):
             content = (
                 "Na arquitetura proposta, OCPP conversa com os eletropostos para eventos de "
                 "sessão, status e comandos operacionais. MODBUS fica no nível de medidores e "
                 "controladores, apoiando leitura de grandezas elétricas e controle de demanda."
             )
-        elif "cobranca" in lower or "cobrança" in lower or "tarifa" in lower or "pagamento" in lower:
+        elif _has_any(lower, ["cobranca", "cobrança", "tarifa", "pagamento", "preço", "preco", "valor", "custo"]):
             tariff = facts.get("tarifa_informada", "uma tarifa configurada pelo operador")
             content = (
                 f"A cobrança dinâmica pode usar {tariff}, horário, energia consumida e perfil "
                 "do usuário. O agente registra início, fim, kWh estimado e regra aplicada, "
                 "sempre deixando claro que os valores do protótipo são simulados."
             )
-        elif "demanda" in lower or "potencia" in lower or "potência" in lower or "balanceamento" in lower:
+        elif _has_any(lower, ["demanda", "potencia", "potência", "balanceamento", "sobrecarga", "limite"]):
             amount = facts.get("quantidade_pontos", "os pontos ativos")
             content = (
                 "O controle de demanda distribui a potência disponível entre "
                 f"{amount} e prioriza a estabilidade da instalação. Se a carga total passar do "
                 "limite configurado, o sistema reduz a potência por conector ou agenda sessões."
             )
-        elif "sessao" in lower or "sessão" in lower:
+        elif _has_any(lower, ["sessao", "sessão", "ciclo", "histórico", "historico"]):
             content = (
                 "Cada sessão deve registrar usuário, conector, horário de início e fim, energia "
                 "consumida, status do carregador, regra de tarifa e valor calculado."
             )
-        else:
+        elif _has_any(lower, ["status", "ativo", "ocupado", "disponível", "disponivel", "fila"]):
+            content = _status_answer(facts)
+        elif _has_any(lower, ["falha", "erro", "alerta", "indisponível", "indisponivel", "conector 2", "conector 3"]):
             content = (
-                "Para o ChargeGrid Intelligence, a recomendação é tratar a recarga como uma "
-                "operação comercial monitorada: registrar a sessão, acompanhar demanda, aplicar "
-                "guardrails de segurança e acionar regras de cobrança dinâmica."
+                "Para tratar uma falha, o ChargeGrid deve registrar o evento, identificar o "
+                "conector afetado, verificar se houve erro de comunicação OCPP ou leitura "
+                "anormal via MODBUS e marcar o ponto como indisponível até a validação técnica."
             )
+        elif _has_any(lower, ["relatório", "relatorio", "resumo", "dashboard", "indicador", "métrica", "metrica"]):
+            content = _report_answer(facts)
+        elif _has_any(lower, ["arquitetura", "agente", "langgraph", "memória", "memoria", "guardrails"]):
+            content = (
+                "A arquitetura usa um agente em LangGraph com etapas separadas: primeiro aplica "
+                "guardrails, depois atualiza a memória da sessão, monta o contexto do ChargeGrid "
+                "e só então gera a resposta. Isso facilita testes, segurança e evolução do projeto."
+            )
+        elif _has_any(lower, ["solar", "fotovoltaica", "fotovoltaico", "goodwe"]):
+            content = (
+                "No contexto do projeto, a integração com o ecossistema GoodWe pode ser tratada "
+                "como apoio ao monitoramento energético e ao uso mais eficiente da recarga. Como "
+                "não há especificação oficial anexada, a resposta deve permanecer conceitual e "
+                "não inventar dados técnicos de produto."
+            )
+        else:
+            content = _general_chargegrid_answer(user_text, facts)
 
         return ModelResponse(content=content, model_name=self.name, estimated_tokens=_estimate_tokens(content))
 
@@ -127,6 +146,10 @@ def _estimate_tokens(text: str) -> int:
     return max(1, round(len(text.split()) * 1.35))
 
 
+def _has_any(text: str, terms: list[str]) -> bool:
+    return any(term in text for term in terms)
+
+
 def _extract_site(text: str) -> str | None:
     site_match = re.search(
         r"(?:condominio|condomínio|eletroposto|campus|unidade)\s+([A-Za-zÀ-ÿ0-9 ._-]{2,40})",
@@ -166,3 +189,58 @@ def _needs_professional_warning(user_text: str) -> bool:
         "ligar direto",
     ]
     return any(term in lower for term in risk_terms)
+
+
+def _status_answer(facts: dict[str, str]) -> str:
+    amount = facts.get("quantidade_pontos")
+    site = facts.get("local_mencionado")
+    if amount:
+        site_text = site or "o local informado"
+        return (
+            f"Para {site_text}, eu consideraria os {amount} pontos de recarga como a base do painel "
+            "operacional. O status ideal deve mostrar quais conectores estão livres, ocupados, "
+            "em falha ou aguardando liberação de pagamento."
+        )
+    if site:
+        return (
+            f"Para {site}, o status operacional deve mostrar conectores disponíveis, ocupados, "
+            "em falha e em fila. Se você informar a quantidade de pontos, eu também consigo "
+            "usar esse número no resumo."
+        )
+    return (
+        "O status operacional deve mostrar conectores disponíveis, ocupados, em falha e em fila. "
+        "Se você informar o local e a quantidade de pontos, eu consigo usar esses dados na resposta."
+    )
+
+
+def _report_answer(facts: dict[str, str]) -> str:
+    site = facts.get("local_mencionado", "unidade analisada")
+    amount = facts.get("quantidade_pontos", "pontos cadastrados")
+    return (
+        f"Um relatório do ChargeGrid para {site} pode trazer: quantidade de pontos ({amount}), "
+        "sessões concluídas, energia consumida em kWh, tempo médio de uso, alertas por conector, "
+        "receita estimada e recomendações de balanceamento de demanda."
+    )
+
+
+def _general_chargegrid_answer(user_text: str, facts: dict[str, str]) -> str:
+    site = facts.get("local_mencionado")
+    amount = facts.get("quantidade_pontos")
+    memory = []
+    if site:
+        memory.append(f"local: {site}")
+    if amount:
+        memory.append(f"pontos de recarga: {amount}")
+
+    memory_text = ""
+    if memory:
+        memory_text = " Considerando a memória da sessão (" + "; ".join(memory) + "),"
+    else:
+        memory_text = " Dentro do escopo do ChargeGrid,"
+
+    return (
+        f"{memory_text} a resposta deve priorizar operação de recarga comercial: registrar a "
+        "sessão, acompanhar status dos conectores, controlar demanda, aplicar regra de cobrança "
+        "e sinalizar riscos ou falhas para análise técnica. Se você quiser, posso detalhar essa "
+        "pergunta por status, cobrança, OCPP, MODBUS, demanda ou relatório operacional."
+    )

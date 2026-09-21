@@ -23,7 +23,7 @@ def test_prompt_injection_is_blocked():
     )
 
     assert result["guardrail_category"] == "prompt_injection"
-    assert "Nao posso" in result["answer"]
+    assert "Não posso" in result["answer"]
 
 
 def test_electrical_risk_is_blocked():
@@ -44,3 +44,16 @@ def test_model_variation_changes_response_style():
 
     assert default_result["model"] != conservative_result["model"]
     assert "profissional habilitado" in conservative_result["answer"]
+
+
+def test_flexible_project_questions_use_correct_portuguese():
+    agent = ChargeGridAgent()
+    session = "perguntas-flexiveis"
+
+    agent.ask("Estou usando o eletroposto Campus FIAP Paulista.", session)
+    status = agent.ask("Como vejo o status dos conectores?", session)
+    report = agent.ask("Faça um relatório operacional resumido.", session)
+
+    assert "disponíveis" in status["answer"] or "conectores" in status["answer"]
+    assert "relatório" in report["answer"]
+    assert "sessão" in report["answer"] or "sessões" in report["answer"]

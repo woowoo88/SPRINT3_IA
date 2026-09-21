@@ -55,6 +55,30 @@ DOMAIN_TERMS = [
     "energia",
     "vagas",
     "conectores",
+    "status",
+    "pagamento",
+    "relatorio",
+    "relatório",
+    "resumo",
+    "dashboard",
+    "falha",
+    "erro",
+    "alerta",
+    "kwh",
+    "ocupacao",
+    "ocupação",
+    "fila",
+    "protocolo",
+    "comunicacao",
+    "comunicação",
+    "arquitetura",
+    "agente",
+    "langgraph",
+    "memoria",
+    "memória",
+    "guardrails",
+    "solar",
+    "fotovoltaico",
 ]
 
 
@@ -66,9 +90,9 @@ def evaluate_guardrails(text: str) -> GuardrailResult:
             allowed=False,
             category="prompt_injection",
             message=(
-                "Nao posso ignorar minhas instrucoes, revelar prompts internos ou sair do "
-                "escopo do ChargeGrid Intelligence. Posso ajudar com operacao segura de "
-                "recarga, sessoes, demanda, OCPP/MODBUS e cobranca dinamica."
+                "Não posso ignorar minhas instruções, revelar prompts internos ou sair do "
+                "escopo do ChargeGrid Intelligence. Posso ajudar com operação segura de "
+                "recarga, sessões, demanda, OCPP/MODBUS e cobrança dinâmica."
             ),
         )
 
@@ -77,9 +101,9 @@ def evaluate_guardrails(text: str) -> GuardrailResult:
             allowed=False,
             category="electrical_safety",
             message=(
-                "Nao posso orientar procedimentos eletricos perigosos. Para instalacao, "
-                "manutencao, aterramento, protecoes ou abertura de equipamentos, procure "
-                "um profissional habilitado e siga as normas aplicaveis."
+                "Não posso orientar procedimentos elétricos perigosos. Para instalação, "
+                "manutenção, aterramento, proteções ou abertura de equipamentos, procure "
+                "um profissional habilitado e siga as normas aplicáveis."
             ),
         )
 
@@ -88,8 +112,8 @@ def evaluate_guardrails(text: str) -> GuardrailResult:
             allowed=True,
             category="legal_caution",
             message=(
-                "Posso explicar impactos operacionais em linguagem geral, mas nao substituo "
-                "orientacao juridica profissional."
+                "Posso explicar impactos operacionais em linguagem geral, mas não substituo "
+                "orientação jurídica profissional."
             ),
         )
 
@@ -98,7 +122,7 @@ def evaluate_guardrails(text: str) -> GuardrailResult:
             allowed=True,
             category="financial_caution",
             message=(
-                "Posso ajudar com estimativas operacionais, mas nao forneco aconselhamento "
+                "Posso ajudar com estimativas operacionais, mas não forneço aconselhamento "
                 "financeiro profissional ou promessa de retorno."
             ),
         )
@@ -109,7 +133,7 @@ def evaluate_guardrails(text: str) -> GuardrailResult:
             category="out_of_scope",
             message=(
                 "Sou focado no ChargeGrid Intelligence, recarga veicular, GoodWe, "
-                "OCPP/MODBUS, sessoes, demanda e cobranca dinamica. Nao tenho contexto "
+                "OCPP/MODBUS, sessões, demanda e cobrança dinâmica. Não tenho contexto "
                 "suficiente para responder esse assunto fora do projeto."
             ),
         )
