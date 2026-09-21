@@ -31,7 +31,7 @@ import os
 from getpass import getpass
 
 os.environ["GEMINI_API_KEY"] = getpass("GEMINI_API_KEY: ")
-os.environ["GEMINI_MODEL"] = "gemini-2.5-flash"
+os.environ["GEMINI_MODEL"] = "gemini-3.6-flash"
 ```
 
 Use o agente:
@@ -56,7 +56,7 @@ Crie um arquivo `.env` baseado em `.env.example`:
 
 ```env
 GEMINI_API_KEY=sua-chave-aqui
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.6-flash
 ```
 
 Instale e rode:

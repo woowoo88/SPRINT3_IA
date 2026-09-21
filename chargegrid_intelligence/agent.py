@@ -5,7 +5,6 @@ import os
 from dotenv import load_dotenv
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from .guardrails import evaluate_guardrails
@@ -19,35 +18,32 @@ class ChargeGridAgent:
 
     def __init__(self, model_name: str | None = None, temperature: float = 0.2):
         load_dotenv()
-        api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+        gemini_key = os.getenv("GEMINI_API_KEY")
+        google_key = os.getenv("GOOGLE_API_KEY")
+        api_key = gemini_key or google_key
         if not api_key:
             raise RuntimeError(
                 "GEMINI_API_KEY não foi configurada. No Colab, configure a chave antes de criar o agente."
             )
 
-        os.environ["GOOGLE_API_KEY"] = api_key
-        self.model_name = model_name or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        if gemini_key and google_key:
+            os.environ.pop("GOOGLE_API_KEY", None)
+
+        self.model_name = model_name or os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
         self._facts_by_session: dict[str, dict[str, str]] = {}
         self._history_by_session: dict[str, InMemoryChatMessageHistory] = {}
 
-        llm = ChatGoogleGenerativeAI(
+        self._llm = ChatGoogleGenerativeAI(
             model=self.model_name,
             temperature=temperature,
             google_api_key=api_key,
         )
-        prompt = ChatPromptTemplate.from_messages(
+        self._prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", "{system_prompt}"),
                 MessagesPlaceholder(variable_name="history"),
                 ("human", "{input}"),
             ]
-        )
-        chain = prompt | llm
-        self._chain = RunnableWithMessageHistory(
-            chain,
-            self._get_history,
-            input_messages_key="input",
-            history_messages_key="history",
         )
 
     def ask(self, message: str, session_id: str = "default") -> dict[str, object]:
@@ -67,14 +63,18 @@ class ChargeGridAgent:
         self._facts_by_session[session_id] = facts
         context = build_context(facts)
 
-        response = self._chain.invoke(
+        history = self._get_history(session_id)
+        prompt_value = self._prompt.invoke(
             {
                 "input": message,
+                "history": history.messages,
                 "system_prompt": system_prompt(context=context, facts=facts),
-            },
-            config={"configurable": {"session_id": session_id}},
+            }
         )
+        response = self._llm.invoke(prompt_value)
         answer = str(getattr(response, "content", response)).strip()
+        history.add_user_message(message)
+        history.add_ai_message(answer)
 
         if guardrail.message:
             answer = f"{guardrail.message}\n\n{answer}"
